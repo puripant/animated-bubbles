@@ -12,10 +12,17 @@ context.textAlign = "center";
 // context.globalAlpha = 0.8;
 
 let random_int = size => Math.floor(Math.random() * size);
+let current_text;
 
-window.onload = function () { generate(words[random_int(words.length)]); };
+window.onload = generate;
 
-function generate(text) {
+function generate() {
+  let text;
+  do {
+    text = words[random_int(words.length)];
+  } while (current_text === text);
+  current_text = text;
+
   let radius = 3;
   bubbles = []; // clear array
   context.clearRect(0, 0, w, h);
@@ -41,7 +48,9 @@ function generate(text) {
 }
 
 let bubble, x, y, radius; //, rgValue;
-(function animate() {
+let frame_count = 0;
+
+function animate() {
   context.clearRect(0, 0, w, h);
   context.fillStyle = '#E9337D'; //"rgba(" + rgValue + "," + rgValue + ",20,0.9)";
 
@@ -62,5 +71,12 @@ let bubble, x, y, radius; //, rgValue;
     context.fill();
   }
 
+  frame_count++;
+  if (frame_count >= 500) {
+    generate();
+    frame_count = 0;
+  }
+
   requestAnimationFrame(animate);
-})();
+}
+requestAnimationFrame(animate);
