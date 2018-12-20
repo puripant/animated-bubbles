@@ -5,5 +5,11 @@ body {
 
 canvas {
   margin: 0 auto;
-  width: 400px;
+  width: 640px;
+}
+
+@media (max-width: 500px) {
+  canvas {
+    width: 320px;
+  }
 }
