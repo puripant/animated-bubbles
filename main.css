@@ -1,9 +1,9 @@
 body {
-  background-color: white;
+  background-color: #212329;
   text-align: center;
 }
 
 canvas {
   margin: 0 auto;
-  width: 800px;
+  width: 400px;
 }
