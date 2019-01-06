@@ -59,12 +59,17 @@
             radius: radius + (Math.random() - 0.5) * radius / 2,
             alpha: 0.5 + Math.random() * 0.5,
             count: Math.random() * 1000,
-            angle: Math.random() * Math.PI * 2
+            angle: Math.random() * Math.PI * 2,
+            mode: 'assemble', //assemble, dance, disperse
+            delay: random_int(4) * 30 //Math.random() * 50
           });
         }
       }
     }
 
+    function constrain(x, min, max) {
+      return Math.min(Math.max(x, min), max);
+    }
     function cubic_bezier(p0, p1, p2, p3) {
       return (t) => (1 - t) * (1 - t) * (1 - t) * p0 +
         3 * (1 - t) * (1 - t) * t * (p0+p1) +
@@ -78,8 +83,7 @@
 
     let bubble, x, y, f, radius;
     let frame_count = 0;
-    let frame_steps = [0, 100, 400, 500];
-    let mode = 'assemble'; //assemble, dance, disperse
+    let frame_steps = [0, 100, 600, 700];
 
     function animate() {
       context.clearRect(0, 0, w, h);
@@ -90,9 +94,9 @@
 
         bubble = bubbles[i];
 
-        switch (mode) {
+        switch (bubble.mode) {
           case 'assemble':
-            f = (frame_count - frame_steps[0]) / (frame_steps[1] - frame_steps[0]);
+            f = constrain((frame_count - frame_steps[0] - bubble.delay) / (frame_steps[1] - frame_steps[0]), 0, 1);
             x = cubic_bezier(Math.cos(bubble.angle) * diag, 0.175, 0.320, bubble.x)(f);
             y = cubic_bezier(Math.sin(bubble.angle) * diag, 0.885, 1.275, bubble.y)(f);
             break;
@@ -101,7 +105,7 @@
             y = bubble.y + Math.cos(bubble.count * 0.04) + bubble.radius;
             break;
           case 'disperse':
-            f = (frame_count - frame_steps[2]) / (frame_steps[3] - frame_steps[2]);
+            f = constrain((frame_count - frame_steps[2] + bubble.delay) / (frame_steps[3] - frame_steps[2] + bubble.delay), 0, 1);
             x = cubic_bezier(bubble.x, 0.175, 0.320, Math.cos(bubble.angle) * diag)(f);
             y = cubic_bezier(bubble.y, 0.885, 1.275, Math.sin(bubble.angle) * diag)(f);
             // from_center = normalize(bubble.x - Math.cos(bubble.angle) * diag, bubble.y - Math.sin(bubble.angle) * diag);
@@ -120,20 +124,22 @@
 
         context.fillStyle = `rgba(237,46,124,${bubble.alpha})`;
         context.fill();
+
+        //update mode
+        if (frame_count >= frame_steps[1] + bubble.delay) {
+          bubble.mode = 'dance';
+        }
+        if (frame_count >= frame_steps[2] - bubble.delay) {
+          bubble.mode = 'disperse';
+        }
+        if (frame_count >= frame_steps[3]) {
+          bubble.mode = 'assemble';
+          generate();
+          frame_count = frame_steps[0];
+        }
       }
 
       frame_count++;
-      if (frame_count >= frame_steps[1]) {
-        mode = 'dance';
-      }
-      if (frame_count >= frame_steps[2]) {
-        mode = 'disperse';
-      }
-      if (frame_count >= frame_steps[3]) {
-        mode = 'assemble';
-        generate();
-        frame_count = frame_steps[0];
-      }
 
       requestAnimationFrame(animate);
     }
