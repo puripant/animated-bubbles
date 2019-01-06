@@ -11,12 +11,14 @@
 </head>
 
 <body>
+
   <canvas width="640" height="960"></canvas>
   <script>
     let context = document.querySelector("canvas").getContext("2d");
     let words = ['API', 'impact', 'data', 'design', 'tech'];
     let w = context.canvas.width;
     let h = context.canvas.height;
+    let center = { x: w/2, y: h/2 };
     let bubbles = [];
     // const bubbles_max = 500;
 
@@ -61,8 +63,15 @@
       }
     }
 
-    let bubble, x, y, radius; //, rgValue;
+    function normalize (x, y) {
+      let size = Math.sqrt(x*x + y*y);
+      return { x: x / size, y: y / size };
+    }
+
+    let bubble, x, y, f, from_center, radius;
     let frame_count = 0;
+    let frame_steps = [0, 100, 400, 500];
+    let mode = 'assemble'; //assemble, dance, disperse
 
     function animate() {
       context.clearRect(0, 0, w, h);
@@ -72,8 +81,26 @@
         context.beginPath();
 
         bubble = bubbles[i];
-        x = bubble.x + Math.sin(bubble.count * 0.04) + bubble.radius;
-        y = bubble.y + Math.cos(bubble.count * 0.04) + bubble.radius;
+
+        switch (mode) {
+          case 'assemble':
+            from_center = normalize(bubble.x - center.x, bubble.y - center.y);
+            f = frame_steps[1] - frame_count;
+            x = bubble.x + from_center.x * f * f * 0.5;
+            y = bubble.y + from_center.y * f * f * 0.5;
+            break;
+          case 'dance':
+            x = bubble.x + Math.sin(bubble.count * 0.04) + bubble.radius;
+            y = bubble.y + Math.cos(bubble.count * 0.04) + bubble.radius;
+            break;
+          case 'disperse':
+            from_center = normalize(bubble.x - center.x, bubble.y - center.y);
+            f = frame_count - frame_steps[2];
+            x = bubble.x + from_center.x * f * f * 0.5;
+            y = bubble.y + from_center.y * f * f * 0.5;
+            break;
+        }
+
         radius = bubble.radius; //+ Math.sin(bubble.count * 0.01) + bubble.radius / 10;
         bubble.count++;
 
@@ -86,14 +113,22 @@
       }
 
       frame_count++;
-      if (frame_count >= 500) {
+      if (frame_count >= frame_steps[1]) {
+        mode = 'dance';
+      }
+      if (frame_count >= frame_steps[2]) {
+        mode = 'disperse';
+      }
+      if (frame_count >= frame_steps[3]) {
+        mode = 'assemble';
         generate();
-        frame_count = 0;
+        frame_count = frame_steps[0];
       }
 
       requestAnimationFrame(animate);
     }
   </script>
+
 </body>
 
 </html>
